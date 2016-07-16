@@ -41,9 +41,11 @@ RUN apt-get -qq clean && \
 ################################################################################
 # Use our base jekyll site to get the dependencies we will need.
 ################################################################################
-RUN git clone https://github.com/fogies/web-jekyll-base.git /docker-jekyll-site/web-jekyll-base
-RUN pip install -r /docker-jekyll-site/web-jekyll-base/requirements3.txt
-RUN bundle install --gemfile=/docker-jekyll-site/web-jekyll-base/Gemfile
+# RUN git clone https://github.com/fogies/web-jekyll-base.git /docker-jekyll-site/web-jekyll-base
+#
+# RUN cd /docker-jekyll-site/web-jekyll-base && pip install -r requirements3.txt
+# RUN cd /docker-jekyll-site/web-jekyll-base && bundle install
+# RUN cd /docker-jekyll-site/web-jekyll-base && npm install
 
 ################################################################################
 # From before-base.

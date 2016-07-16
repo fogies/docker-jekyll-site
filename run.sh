@@ -44,12 +44,9 @@ cd /site
 git fetch --all
 git checkout --force origin/$GIT_REPOSITORY_SITE_BRANCH
 
-# Activate our Python
-# source /virtualenvs/env35/bin/activate
+# Install our dependencies
 pip install -r requirements3.txt
-
-# Activate our Ruby
-source /etc/profile.d/rvm.sh
+invoke update_dependencies
 
 # Build our site
 invoke build_production
