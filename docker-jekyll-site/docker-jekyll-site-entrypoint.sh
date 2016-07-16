@@ -12,19 +12,19 @@ if [[ ! -n $GIT_REPOSITORY_SITE_BRANCH ]] ; then
 fi
 
 # If we have an existing repository, but not the right one, we need to start from scratch
-GIT_REPOSITORY_EXISTING=$(git --git-dir=/site/.git remote -v | grep -m 1 origin | awk -F'[ \t]' '{print $2}')
+GIT_REPOSITORY_EXISTING=$(git --git-dir=/docker-jekyll-site/site/.git remote -v | grep -m 1 origin | awk -F'[ \t]' '{print $2}')
 echo "Desired Repository: $GIT_REPOSITORY_SITE"
 echo "Existing Repository: $GIT_REPOSITORY_EXISTING"
-if [[ -d /site ]] ; then
+if [[ -d /docker-jekyll-site/site ]] ; then
   if [[ $GIT_REPOSITORY_SITE != $GIT_REPOSITORY_EXISTING ]] ; then
-    rm -rf /site/*
-    rm -rf /site/.[!.]?*
+    rm -rf /docker-jekyll-site/site/*
+    rm -rf /docker-jekyll-site/site/.[!.]?*
   fi
 fi
 
 # Check whether this is our first time running, such that we need to clone
-if [[ ! -d /site/.git ]] ; then
-  git clone $GIT_REPOSITORY_SITE /site
+if [[ ! -d /docker-jekyll-site/site/.git ]] ; then
+  git clone $GIT_REPOSITORY_SITE /docker-jekyll-site/site
 fi
 
 # The presence of a lock means somebody else did not finish
@@ -32,32 +32,29 @@ fi
 # Saw this when the host disk filled, hopefully should not need this
 # But it allows us to recover without needing to explicitly detect
 # this situation and delete the container
-if [[ -f /site/.git/index.lock ]] ; then
-  rm -f /site/.git/index.lock
+if [[ -f /docker-jekyll-site/site/.git/index.lock ]] ; then
+  rm -f /docker-jekyll-site/site/.git/index.lock
 fi
 
 # Change into the site directory
-cd /site
+cd /docker-jekyll-site/site
 
 # Ensure we have any site updates
 # http://grimoire.ca/git/stop-using-git-pull-to-deploy
 git fetch --all
 git checkout --force origin/$GIT_REPOSITORY_SITE_BRANCH
 
-# Activate our Python
-source /virtualenvs/env35/bin/activate
+# Link in our pre-installed node_modules
+ls -s node_modules /docker-jekyll-site-temp/node_modules
 
-# Activate our Ruby
-source /etc/profile.d/rvm.sh
-
-# Ensure we have our Python requirements, invoke will get everything else
-python -m pip install -r requirements3.txt
-
-# Build our site
-invoke build_production
+# Ensure we have our python dependencies
+pip install -r requirements3.txt
 
 # If we have a publish configuration, then we do that, otherwise we serve ourselves
 if [[ -f /publish.yml ]] ; then
+  # Build our site
+  invoke build_production
+
   # Parse our file
   dos2unix -n /publish.yml /publishcleaned.yml
   PUBLISH_USER=$(awk '{ if(match($0, /  user: (.*)/, arr)) print arr[1] }' /publishcleaned.yml)
@@ -72,7 +69,7 @@ if [[ -f /publish.yml ]] ; then
   sshpass -p $PUBLISH_PASSWORD ssh $SSH_OPTIONS $PUBLISH_USER@$PUBLISH_HOST mkdir -p $PUBLISH_STAGING
   sshpass -p $PUBLISH_PASSWORD ssh $SSH_OPTIONS $PUBLISH_USER@$PUBLISH_HOST mkdir -p $PUBLISH_PUBLISH
   # Upload the files
-  sshpass -p $PUBLISH_PASSWORD rsync -rcv --delete -e "ssh $SSH_OPTIONS" /site/_site/ $PUBLISH_USER@$PUBLISH_HOST:$PUBLISH_STAGING/
+  sshpass -p $PUBLISH_PASSWORD rsync -rcv --delete -e "ssh $SSH_OPTIONS" /docker-jekyll-site/site/_site/ $PUBLISH_USER@$PUBLISH_HOST:$PUBLISH_STAGING/
   # Put the files in place
   sshpass -p $PUBLISH_PASSWORD ssh $SSH_OPTIONS $PUBLISH_USER@$PUBLISH_HOST rsync -rcv --delete $PUBLISH_STAGING/ $PUBLISH_PUBLISH/
 else
