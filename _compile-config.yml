@@ -1,0 +1,33 @@
+config:
+  local:
+    docker:
+      cmd_bash: C:/Program Files/Git/bin/bash
+      cmd_dockermachine: C:/Program Files/Docker Toolbox/docker-machine.exe
+
+    python:
+      version: 3.5
+      pip_version: 8.1.1
+      # Invoke is currently pinned by this bug:
+      #   https://github.com/pyinvoke/invoke/issues/345
+      invoke_version: 0.12.2
+
+  docker:
+    travis:
+      version: 1.11.2-0~trusty
+      compose_version: 1.8.0-rc1
+      compose_up_delay: 15
+
+  dockerfile:
+    main:
+      file: Dockerfile
+      context: .
+      base_image: ubuntu:14.04
+
+jinja2:
+  entries:
+    - in:  Dockerfile.in
+      out: Dockerfile
+    - in:  requirements3.in.in
+      out: requirements3.in
+    - in:  .travis.yml.in
+      out: .travis.yml

@@ -1,0 +1,6 @@
+main:
+  build: ..
+  environment:
+    GIT_REPOSITORY_SITE: "https://github.com/fogies/web-jekyll-base.git"
+  ports:
+    - "4000:4000"

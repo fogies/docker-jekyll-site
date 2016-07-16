@@ -1,3 +1,16 @@
-# Pycharm files
+# IDE settings
 .idea
+*.iml
 
+# Our Python environment
+env34
+env35
+
+# Compiled Python
+*.pyc
+
+# Localized compose files
+tests/test-compose.localized.yml
+
+# Any secrets, such as passwords or keys
+/secrets

@@ -1,0 +1,59 @@
+{# #############################################################################
+# This file compiles to Dockerfile.
+############################################################################ -#}
+#
+# This file compiled from Dockerfile.in.
+#
+
+{% set current_dockerfile_config = dockerfile.main -%}
+
+FROM {{ current_dockerfile_config.base_image }}
+
+{# #############################################################################
+# Core configuration of the environment. We should always include these.
+############################################################################ -#}
+{% include 'base/environment.Dockerfile' %}
+
+{% include 'base/apt-get-essentials.Dockerfile' %}
+
+{# #############################################################################
+# Different runtimes we may want to include.
+#
+# {% include 'base/python.Dockerfile' %}
+# {% include 'base/ruby.Dockerfile' %}
+# {% include 'base/node.Dockerfile' %}
+############################################################################ -#}
+{% include 'base/python.Dockerfile' %}
+{% include 'base/ruby.Dockerfile' %}
+{% include 'base/node.Dockerfile' %}
+
+################################################################################
+# Additional packages we need.
+################################################################################
+RUN apt-get -qq clean && \
+    apt-get -qq update && \
+    apt-get -qq install -y --no-install-recommends \
+        gawk \
+        sshpass \
+    && \
+    apt-get -qq clean
+
+################################################################################
+# From before-base.
+################################################################################
+
+# Port where we serve the files
+EXPOSE 4000
+
+# Volume where the site will persist
+VOLUME ["/site"]
+
+# Our wrapper script
+COPY run.sh /tmp/run.sh
+RUN dos2unix /tmp/run.sh
+RUN chmod a+x /tmp/run.sh
+
+# Run the wrapper script
+CMD ["/tmp/run.sh"]
+
+{# This comment gives us a newline at the end of the generated file #}

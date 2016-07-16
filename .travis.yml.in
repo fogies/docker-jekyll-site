@@ -1,0 +1,46 @@
+{# This file compiles to .travis.yml -#}
+# This file compiled from .travis.yml.in
+
+sudo: required
+
+language: python
+
+services:
+  - docker
+
+python:
+  - "{{ local.python.version }}"
+
+env:
+  - BASE_DOCKER_ON_TRAVIS=true
+
+install:
+  # Install Python dependencies
+  - python -m pip install --upgrade pip=={{ local.python.pip_version }}
+  - python -m pip install -r requirements3.txt
+
+  # Install Docker
+  - apt-cache madison docker-engine
+
+  - sudo apt-get -o Dpkg::Options::="--force-confnew" install -y docker-engine={{ docker.travis.version }}
+
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/{{ docker.travis.compose_version }}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+
+  - docker version
+  - docker-compose version
+
+  # Build our Dockerfiles
+{%- for current_dockerfile_key, current_dockerfile_config in dockerfile.items() %}
+  - docker build -f {{ current_dockerfile_config.file }} {{ current_dockerfile_config.context }}
+{%- endfor %}
+
+script:
+  - invoke compile_localize_test_compose &&
+    docker-compose -f tests/test-compose.localized.yml build &&
+    docker-compose -f tests/test-compose.localized.yml up -d &&
+    sleep {{ docker.travis.compose_up_delay }}
+  - nosetests
+{# This comment gives us a newline at the end of the generated file #}
