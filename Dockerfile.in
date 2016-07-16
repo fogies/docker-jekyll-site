@@ -39,13 +39,29 @@ RUN apt-get -qq clean && \
     apt-get -qq clean
 
 ################################################################################
-# Use our base jekyll site to get the dependencies we will need.
+# Install Python packages.
 ################################################################################
-# RUN git clone https://github.com/fogies/web-jekyll-base.git /docker-jekyll-site/web-jekyll-base
-#
-# RUN cd /docker-jekyll-site/web-jekyll-base && pip install -r requirements3.txt
-# RUN cd /docker-jekyll-site/web-jekyll-base && bundle install
-# RUN cd /docker-jekyll-site/web-jekyll-base && npm install
+COPY docker-jekyll-site/requirements3.txt /docker-jekyll-site-temp/requirements3.txt
+RUN dos2unix /docker-jekyll-site-temp/requirements3.txt && \
+    pip install -r /docker-jekyll-site-temp/requirements3.txt
+
+################################################################################
+# Install Ruby gems.
+################################################################################
+COPY docker-jekyll-site/Gemfile /docker-jekyll-site-temp/Gemfile
+COPY docker-jekyll-site/Gemfile.lock /docker-jekyll-site-temp/Gemfile.lock
+RUN dos2unix /docker-jekyll-site-temp/Gemfile && \
+    dos2unix /docker-jekyll-site-temp/Gemfile.lock && \
+    cd /docker-jekyll-site-temp && bundle install
+
+################################################################################
+# Install Node modules. We will need to link to these at runtime.
+################################################################################
+COPY docker-jekyll-site/npm-shrinkwrap.json /docker-jekyll-site-temp/npm-shrinkwrap.json
+COPY docker-jekyll-site/package.json /docker-jekyll-site-temp/package.json
+RUN dos2unix /docker-jekyll-site-temp/npm-shrinkwrap.json && \
+    dos2unix /docker-jekyll-site-temp/package.json && \
+    cd /docker-jekyll-site-temp && npm install
 
 ################################################################################
 # From before-base.
@@ -55,14 +71,15 @@ RUN apt-get -qq clean && \
 EXPOSE 4000
 
 # Volume where the site will persist
-VOLUME ["/site"]
+VOLUME ["/docker-jekyll-site/site"]
 
-# Our wrapper script
-COPY run.sh /tmp/run.sh
-RUN dos2unix /tmp/run.sh
-RUN chmod a+x /tmp/run.sh
+################################################################################
+# Set up our entrypoint script.
+################################################################################
+COPY docker-jekyll-site/docker-jekyll-site-entrypoint.sh /docker-jekyll-site-entrypoint.sh
+RUN dos2unix /docker-jekyll-site-entrypoint.sh && \
+    chmod +x /docker-jekyll-site-entrypoint.sh
 
 # Run the wrapper script
-CMD ["/tmp/run.sh"]
-
+CMD ["/docker-jekyll-site-entrypoint.sh"]
 {# This comment gives us a newline at the end of the generated file #}
