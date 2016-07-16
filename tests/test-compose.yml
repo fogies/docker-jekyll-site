@@ -1,7 +1,6 @@
 main:
   build: ..
-
-nginxproxy:
-  image: "nginx"
+  environment:
+    GIT_REPOSITORY_SITE: "https://github.com/fogies/web-jekyll-base.git"
   ports:
-    - "80:80"
+    - "4000:4000"
