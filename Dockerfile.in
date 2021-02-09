@@ -9,6 +9,11 @@
 
 FROM {{ current_dockerfile_config.base_image }}
 
+#
+# 2/9/21 Add a VERSION file as part of preparing for future scripts
+#
+ADD VERSION .
+
 {# #############################################################################
 # Core configuration of the environment. We should always include these.
 ############################################################################ -#}

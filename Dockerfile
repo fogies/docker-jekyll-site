@@ -5,6 +5,11 @@
 FROM ubuntu:18.04
 
 #
+# 2/9/21 Add a VERSION file as part of preparing for future scripts
+#
+ADD VERSION .
+
+#
 # Environment configurations to get everything to play well
 #
 
